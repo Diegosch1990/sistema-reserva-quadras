@@ -1,6 +1,6 @@
 import React from 'react';
 import ReactDOM from 'react-dom/client';
-import { createClient } from '@supabase/supabase-js';
+import supabase from './utils/supabaseClient';
 import { Login } from './components/Login';
 import { Header } from './components/Header';
 import { Menu } from './components/Menu';
@@ -13,12 +13,7 @@ import { Releases } from './components/Releases';
 import { MessageModal } from './components/MessageModal';
 import { BookingForm } from './components/BookingForm';
 import { CancelForm } from './components/CancelForm';
-
-const supabaseUrl = 'https://your-supabase-url.supabase.co';
-const supabaseKey = 'your-supabase-key';
-const supabaseSecret = 'your-supabase-secret';
-
-const supabase = createClient(supabaseUrl, supabaseKey, supabaseSecret);
+import './styles/main.css';
 
 function App() {
     const [session, setSession] = React.useState(null);
@@ -77,8 +72,10 @@ function App() {
         setCurrentView('settings');
     }
 
-    function handleLogin() {
+    function handleLogin(user) {
+        setSession(user);
         setCurrentView('dashboard');
+        loadBookings();
     }
 
     async function handleLogout() {
@@ -86,6 +83,7 @@ function App() {
             const { error } = await supabase.auth.signOut();
             if (error) throw error;
             
+            setSession(null);
             setCurrentView('login');
             showMessageModal('Sucesso', 'Logout realizado com sucesso!');
         } catch (error) {
@@ -158,7 +156,8 @@ function App() {
                             try {
                                 const { error } = await supabase
                                     .from('bookings')
-                                    .delete([cancelledBookingId]);
+                                    .delete()
+                                    .eq('id', cancelledBookingId);
 
                                 if (error) throw error;
                                 
