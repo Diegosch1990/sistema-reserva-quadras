@@ -1,4 +1,6 @@
-function CustomerModal({ isOpen, onClose, onSave }) {
+import React from 'react';
+
+export function CustomerModal({ isOpen, onClose, onSave }) {
     const [newCustomer, setNewCustomer] = React.useState({ name: '', whatsapp: '' });
 
     async function handleSubmit(e) {

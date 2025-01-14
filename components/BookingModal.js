@@ -5,7 +5,7 @@ import { WhatsAppNotification } from '../utils/notifications';
 import { CustomerModal } from './CustomerModal';
 import { MessageModal } from './MessageModal';
 
-function BookingModal({ isOpen, onClose, onSave, selectedSlot }) {
+export function BookingModal({ isOpen, onClose, onSave, selectedSlot }) {
     const [formData, setFormData] = React.useState({
         name: '',
         whatsapp: '',
