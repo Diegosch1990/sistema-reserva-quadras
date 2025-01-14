@@ -6,7 +6,7 @@
     "*.{html,htm}": ["@parcel/transformer-html"]
   },
   "optimizers": {
-    "*.{js,mjs,cjs}": ["@parcel/optimizer-terser"],
+    "*.js": ["@parcel/optimizer-swc"],
     "*.css": ["@parcel/optimizer-css"],
     "*.html": ["@parcel/optimizer-htmlnano"]
   }
