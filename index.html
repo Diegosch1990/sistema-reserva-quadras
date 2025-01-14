@@ -3,57 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Sistema de Agendamento de Quadra</title>
-    
-    <!-- React Production -->
-    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
-    
-    <!-- Tailwind CSS -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    
-    <!-- Custom Styles -->
-    <link href="styles/main.css" rel="stylesheet">
+    <title>Sistema de Reserva de Quadras</title>
+    <link href="./styles/main.css" rel="stylesheet">
 </head>
 <body>
     <div id="root"></div>
-
-    <!-- Database Utils -->
-    <script type="text/babel" data-type="module" src="utils/databaseUtils.js"></script>
-    <script type="text/babel" data-type="module" src="utils/errorHandler.js"></script>
-
-    <!-- Utilitários -->
-    <script type="text/babel" data-type="module" src="utils/dateUtils.js"></script>
-    <script type="text/babel" data-type="module" src="utils/bookingService.js"></script>
-
-    <!-- Componentes de Modal -->
-    <script type="text/babel" data-type="module" src="components/MessageModal.js"></script>
-    <script type="text/babel" data-type="module" src="components/ConfirmModal.js"></script>
-    <script type="text/babel" data-type="module" src="components/CustomerModal.js"></script>
-    <script type="text/babel" data-type="module" src="components/BookingModal.js"></script>
-
-    <!-- Componentes de Configurações -->
-    <script type="text/babel" data-type="module" src="components/settings/CourtManagement.js"></script>
-    <script type="text/babel" data-type="module" src="components/settings/BusinessSettings.js"></script>
-    <script type="text/babel" data-type="module" src="components/settings/BookingSettings.js"></script>
-    <script type="text/babel" data-type="module" src="components/settings/AdminSettings.js"></script>
-    <script type="text/babel" data-type="module" src="components/settings/Settings.js"></script>
-
-    <!-- Componentes Principais -->
-    <script type="text/babel" data-type="module" src="components/Header.js"></script>
-    <script type="text/babel" data-type="module" src="components/Menu.js"></script>
-    <script type="text/babel" data-type="module" src="components/TimeTable.js"></script>
-    <script type="text/babel" data-type="module" src="components/BookingForm.js"></script>
-    <script type="text/babel" data-type="module" src="components/CancelForm.js"></script>
-    <script type="text/babel" data-type="module" src="components/Dashboard.js"></script>
-    <script type="text/babel" data-type="module" src="components/Reports.js"></script>
-    <script type="text/babel" data-type="module" src="components/Toast.js"></script>
-    <script type="text/babel" data-type="module" src="components/CustomerControl.js"></script>
-    <script type="text/babel" data-type="module" src="components/Login.js"></script>
-    <script type="text/babel" data-type="module" src="components/Releases.js"></script>
-
-    <!-- App Principal -->
-    <script type="text/babel" data-type="module" src="app.js"></script>
+    <script type="module" src="./app.js"></script>
 </body>
 </html>

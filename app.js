@@ -1,18 +1,24 @@
-import supabase from './utils/supabaseClient';
 import React from 'react';
-import ReactDOM from 'react-dom';
-import { Login } from './Login';
-import { Header } from './Header';
-import { Menu } from './Menu';
-import { Dashboard } from './Dashboard';
-import { TimeTable } from './TimeTable';
-import { BookingForm } from './BookingForm';
-import { CancelForm } from './CancelForm';
-import { CustomerControl } from './CustomerControl';
-import { Settings } from './Settings';
-import { Reports } from './Reports';
-import { Releases } from './Releases';
-import { MessageModal } from './MessageModal';
+import ReactDOM from 'react-dom/client';
+import { createClient } from '@supabase/supabase-js';
+import { Login } from './components/Login';
+import { Header } from './components/Header';
+import { Menu } from './components/Menu';
+import { Dashboard } from './components/Dashboard';
+import { TimeTable } from './components/TimeTable';
+import { Reports } from './components/Reports';
+import { Settings } from './components/Settings';
+import { CustomerControl } from './components/CustomerControl';
+import { Releases } from './components/Releases';
+import { MessageModal } from './components/MessageModal';
+import { BookingForm } from './components/BookingForm';
+import { CancelForm } from './components/CancelForm';
+
+const supabaseUrl = 'https://your-supabase-url.supabase.co';
+const supabaseKey = 'your-supabase-key';
+const supabaseSecret = 'your-supabase-secret';
+
+const supabase = createClient(supabaseUrl, supabaseKey, supabaseSecret);
 
 function App() {
     const [session, setSession] = React.useState(null);
