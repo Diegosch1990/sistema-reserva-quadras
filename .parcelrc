@@ -4,10 +4,5 @@
     "*.{js,mjs,jsx,cjs,ts,tsx}": ["@parcel/transformer-js"],
     "*.{css,pcss}": ["@parcel/transformer-css"],
     "*.{html,htm}": ["@parcel/transformer-html"]
-  },
-  "optimizers": {
-    "*.js": ["@parcel/optimizer-swc"],
-    "*.css": ["@parcel/optimizer-css"],
-    "*.html": ["@parcel/optimizer-htmlnano"]
   }
 }
