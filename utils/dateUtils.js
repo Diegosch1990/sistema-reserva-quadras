@@ -3,7 +3,7 @@ function formatDate(date) {
         const days = ['Domingo', 'Segunda', 'Terça', 'Quarta', 'Quinta', 'Sexta', 'Sábado'];
         return days[date.getDay()];
     } catch (error) {
-        reportError(error);
+        console.error('Erro ao formatar data:', error);
         return '';
     }
 }
@@ -16,7 +16,21 @@ function formatTime(date) {
             hour12: false 
         });
     } catch (error) {
-        reportError(error);
+        console.error('Erro ao formatar hora:', error);
         return '';
     }
 }
+
+function formatShortDate(date) {
+    try {
+        return date.toLocaleDateString('pt-BR', {
+            day: 'numeric',
+            month: 'numeric'
+        });
+    } catch (error) {
+        console.error('Erro ao formatar data curta:', error);
+        return '';
+    }
+}
+
+export { formatDate, formatTime, formatShortDate };

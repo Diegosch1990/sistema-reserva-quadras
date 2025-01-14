@@ -1,4 +1,6 @@
 import React from 'react';
+import { safeListObjects } from '../utils/supabaseUtils';
+import { formatCurrency } from '../utils/formatUtils';
 
 export function Dashboard({ bookings }) {
     const [stats, setStats] = React.useState({
@@ -11,29 +13,39 @@ export function Dashboard({ bookings }) {
     const [courts, setCourts] = React.useState([]);
     const [currentDay, setCurrentDay] = React.useState('');
     const [bookingSettings, setBookingSettings] = React.useState(null);
+    const [loading, setLoading] = React.useState(true);
+    const [error, setError] = React.useState(null);
 
     React.useEffect(() => {
         loadInitialData();
-        calculateStats();
-        loadAvailableSlots();
-    }, [bookings]);
+    }, []);
+
+    React.useEffect(() => {
+        if (courts.length > 0 && bookings) {
+            calculateStats();
+            loadAvailableSlots();
+        }
+    }, [courts, bookings]);
 
     async function loadInitialData() {
         try {
-            const [courtsResponse, settingsResponse] = await Promise.all([
-                safeListObjects('court', 100, true),
-                safeListObjects('booking_settings', 1, true)
+            setLoading(true);
+            const [courtsData, settingsData] = await Promise.all([
+                safeListObjects('courts'),
+                safeListObjects('booking_settings', 1)
             ]);
 
-            setCourts(courtsResponse || []);
-            if (settingsResponse && settingsResponse.length > 0) {
-                setBookingSettings(settingsResponse[0].objectData);
+            setCourts(courtsData);
+            if (settingsData && settingsData.length > 0) {
+                setBookingSettings(settingsData[0]);
             }
 
             setCurrentDay(getCurrentDayName());
-        } catch (error) {
-            reportError(error);
-            console.error('Error loading initial data:', error);
+        } catch (err) {
+            setError('Erro ao carregar dados iniciais');
+            console.error('Error loading initial data:', err);
+        } finally {
+            setLoading(false);
         }
     }
 
@@ -43,23 +55,26 @@ export function Dashboard({ bookings }) {
     }
 
     function calculateStats() {
+        if (!bookings) return;
+
         const today = new Date().toISOString().split('T')[0];
-        const todayBookings = bookings.filter(booking => booking.objectData.date === today);
+        const todayBookings = bookings.filter(booking => booking.date.split('T')[0] === today);
         
         const weekStart = new Date();
         weekStart.setDate(weekStart.getDate() - weekStart.getDay());
         const weeklyBookings = bookings.filter(booking => {
-            const bookingDate = new Date(booking.objectData.date);
+            const bookingDate = new Date(booking.date);
             return bookingDate >= weekStart;
         });
 
-        const monthlyIncome = bookings.reduce((total, booking) => {
-            const bookingDate = new Date(booking.objectData.date);
-            if (bookingDate.getMonth() === new Date().getMonth()) {
-                return total + parseFloat(booking.objectData.price || 0);
-            }
-            return total;
-        }, 0);
+        const monthStart = new Date();
+        monthStart.setDate(1);
+        const monthlyBookings = bookings.filter(booking => {
+            const bookingDate = new Date(booking.date);
+            return bookingDate >= monthStart;
+        });
+
+        const monthlyIncome = monthlyBookings.reduce((total, booking) => total + (booking.price || 0), 0);
 
         setStats({
             totalBookings: bookings.length,
@@ -70,161 +85,104 @@ export function Dashboard({ bookings }) {
     }
 
     async function loadAvailableSlots() {
-        if (!bookingSettings || !courts.length) return;
+        if (!courts.length || !bookingSettings) return;
 
+        const today = new Date();
         const slots = [];
-        const operatingHours = bookingSettings.operatingHours;
-        const hours = currentDay === 'Sábado' || currentDay === 'Domingo' 
-            ? operatingHours.weekends 
-            : operatingHours.weekdays;
 
-        for (const court of courts) {
-            let currentTime = new Date(`2000-01-01 ${hours.start}`);
-            const endTime = new Date(`2000-01-01 ${hours.end}`);
-
-            while (currentTime < endTime) {
-                const timeString = currentTime.toLocaleTimeString('pt-BR', { 
-                    hour: '2-digit', 
-                    minute: '2-digit' 
-                });
-
-                const isBooked = bookings.some(booking => 
-                    booking.objectData.courtId === court.objectId &&
-                    booking.objectData.time === timeString &&
-                    booking.objectData.day === currentDay
-                );
-
-                slots.push({
-                    time: timeString,
-                    courtName: court.objectData.name,
-                    courtId: court.objectId,
-                    available: !isBooked
-                });
-
-                currentTime.setMinutes(currentTime.getMinutes() + bookingSettings.slotDuration);
-            }
-        }
+        courts.forEach(court => {
+            const courtSlots = generateAvailableSlots(court, today, bookingSettings);
+            slots.push(...courtSlots);
+        });
 
         setAvailableSlots(slots);
     }
 
+    function generateAvailableSlots(court, date, settings) {
+        const slots = [];
+        const currentHour = date.getHours();
+        const startHour = parseInt(settings.start_time.split(':')[0]);
+        const endHour = parseInt(settings.end_time.split(':')[0]);
+
+        for (let hour = startHour; hour < endHour; hour++) {
+            if (date.toDateString() === new Date().toDateString() && hour <= currentHour) {
+                continue;
+            }
+
+            const isBooked = bookings?.some(booking => 
+                booking.court_id === court.id && 
+                new Date(booking.date).getHours() === hour
+            );
+
+            if (!isBooked) {
+                slots.push({
+                    courtId: court.id,
+                    courtName: court.name,
+                    time: `${hour}:00`,
+                    date: date.toISOString().split('T')[0]
+                });
+            }
+        }
+
+        return slots;
+    }
+
+    if (loading) {
+        return (
+            <div className="flex justify-center items-center h-64">
+                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-500"></div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 mb-4" role="alert">
+                <p className="font-bold">Erro</p>
+                <p>{error}</p>
+            </div>
+        );
+    }
+
     return (
         <div className="space-y-6">
-            {/* Stats Cards */}
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-                <div className="bg-gradient-to-br from-blue-500 to-blue-600 rounded-xl shadow-lg p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-white text-sm opacity-75">Total de Reservas</p>
-                            <p className="text-white text-3xl font-bold mt-2">{stats.totalBookings}</p>
-                        </div>
-                        <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                    </div>
+            {/* Stats Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h3 className="text-gray-500 text-sm font-medium">Total de Reservas</h3>
+                    <p className="mt-2 text-3xl font-semibold text-gray-900">{stats.totalBookings}</p>
                 </div>
-
-                <div className="bg-gradient-to-br from-green-500 to-green-600 rounded-xl shadow-lg p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-white text-sm opacity-75">Reservas Hoje</p>
-                            <p className="text-white text-3xl font-bold mt-2">{stats.todayBookings}</p>
-                        </div>
-                        <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                            </svg>
-                        </div>
-                    </div>
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h3 className="text-gray-500 text-sm font-medium">Reservas Hoje</h3>
+                    <p className="mt-2 text-3xl font-semibold text-gray-900">{stats.todayBookings}</p>
                 </div>
-
-                <div className="bg-gradient-to-br from-purple-500 to-purple-600 rounded-xl shadow-lg p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-white text-sm opacity-75">Reservas na Semana</p>
-                            <p className="text-white text-3xl font-bold mt-2">{stats.weeklyBookings}</p>
-                        </div>
-                        <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
-                            </svg>
-                        </div>
-                    </div>
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h3 className="text-gray-500 text-sm font-medium">Reservas na Semana</h3>
+                    <p className="mt-2 text-3xl font-semibold text-gray-900">{stats.weeklyBookings}</p>
                 </div>
-
-                <div className="bg-gradient-to-br from-yellow-500 to-yellow-600 rounded-xl shadow-lg p-6">
-                    <div className="flex items-center justify-between">
-                        <div>
-                            <p className="text-white text-sm opacity-75">Receita Mensal</p>
-                            <p className="text-white text-3xl font-bold mt-2">
-                                R$ {stats.monthlyIncome.toFixed(2)}
-                            </p>
-                        </div>
-                        <div className="bg-white bg-opacity-20 p-3 rounded-lg">
-                            <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                            </svg>
-                        </div>
-                    </div>
+                <div className="bg-white rounded-lg shadow p-6">
+                    <h3 className="text-gray-500 text-sm font-medium">Faturamento Mensal</h3>
+                    <p className="mt-2 text-3xl font-semibold text-gray-900">{formatCurrency(stats.monthlyIncome)}</p>
                 </div>
             </div>
 
-            {/* Available Slots Table */}
-            <div className="bg-white rounded-xl shadow-lg p-6">
-                <div className="flex justify-between items-center mb-6">
-                    <h3 className="text-lg font-medium">Horários Disponíveis - {currentDay}</h3>
-                    <div className="flex gap-2">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800">
-                            ● Disponível
-                        </span>
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
-                            ● Ocupado
-                        </span>
+            {/* Available Slots */}
+            <div className="bg-white rounded-lg shadow">
+                <div className="p-6">
+                    <h2 className="text-lg font-medium text-gray-900">Horários Disponíveis Hoje</h2>
+                    <div className="mt-4 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                        {availableSlots.map((slot, index) => (
+                            <div key={index} className="border rounded-lg p-4">
+                                <h3 className="font-medium text-gray-900">{slot.courtName}</h3>
+                                <p className="text-gray-500">{slot.time}</p>
+                            </div>
+                        ))}
+                        {availableSlots.length === 0 && (
+                            <p className="text-gray-500 col-span-full text-center py-4">
+                                Nenhum horário disponível para hoje
+                            </p>
+                        )}
                     </div>
-                </div>
-
-                <div className="overflow-x-auto">
-                    <table className="min-w-full divide-y divide-gray-200">
-                        <thead>
-                            <tr>
-                                <th className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                    Horário
-                                </th>
-                                {courts.map(court => (
-                                    <th key={court.objectId} className="px-6 py-3 bg-gray-50 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                                        {court.objectData.name}
-                                    </th>
-                                ))}
-                            </tr>
-                        </thead>
-                        <tbody className="bg-white divide-y divide-gray-200">
-                            {Array.from(new Set(availableSlots.map(slot => slot.time))).map(time => (
-                                <tr key={time}>
-                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-                                        {time}
-                                    </td>
-                                    {courts.map(court => {
-                                        const slot = availableSlots.find(s => 
-                                            s.time === time && s.courtId === court.objectId
-                                        );
-                                        return (
-                                            <td key={`${time}-${court.objectId}`} className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-                                                <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                                    slot?.available 
-                                                        ? 'bg-green-100 text-green-800'
-                                                        : 'bg-red-100 text-red-800'
-                                                }`}>
-                                                    {slot?.available ? 'Disponível' : 'Ocupado'}
-                                                </span>
-                                            </td>
-                                        );
-                                    })}
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
                 </div>
             </div>
         </div>
