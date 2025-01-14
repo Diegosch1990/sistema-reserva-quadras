@@ -1,4 +1,6 @@
-function Header({ onSettingsClick }) {
+import React from 'react';
+
+export function Header({ onSettingsClick }) {
     // ... (previous state and effects remain the same)
 
     return (

@@ -1,6 +1,7 @@
+import React from 'react';
 import supabase from '../utils/supabaseClient';
 
-function Login({ onLogin }) {
+export function Login({ onLogin }) {
     const [credentials, setCredentials] = React.useState({
         email: '',
         password: '',
