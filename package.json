@@ -2,7 +2,7 @@
   "name": "sistema-reserva-quadras",
   "version": "1.0.0",
   "description": "Sistema de reserva de quadras esportivas",
-  "main": "app.js",
+  "source": "index.html",
   "dependencies": {
     "@supabase/supabase-js": "^2.39.3",
     "react": "^18.2.0",
@@ -13,7 +13,7 @@
     "parcel": "^2.11.0"
   },
   "scripts": {
-    "dev": "parcel index.html",
+    "start": "parcel index.html",
     "build": "parcel build index.html --no-source-maps --public-url ./",
     "test": "jest",
     "lint": "eslint ."
