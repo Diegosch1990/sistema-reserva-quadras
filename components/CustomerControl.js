@@ -1,4 +1,6 @@
-function CustomerControl() {
+import React from 'react';
+
+export function CustomerControl() {
     const [customers, setCustomers] = React.useState([]);
     const [searchTerm, setSearchTerm] = React.useState('');
     const [filteredCustomers, setFilteredCustomers] = React.useState([]);

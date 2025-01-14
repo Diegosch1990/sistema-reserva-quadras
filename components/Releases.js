@@ -1,4 +1,6 @@
-function Releases() {
+import React from 'react';
+
+export function Releases() {
     const [releases, setReleases] = React.useState([]);
     const [showAddModal, setShowAddModal] = React.useState(false);
     const [formData, setFormData] = React.useState({

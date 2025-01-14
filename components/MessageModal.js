@@ -1,4 +1,6 @@
-function MessageModal({ isOpen, onClose, title, message, type = 'success' }) {
+import React from 'react';
+
+export function MessageModal({ isOpen, onClose, title, message, type = 'success' }) {
     if (!isOpen) return null;
 
     const icons = {

@@ -1,4 +1,6 @@
-function CancelForm({ bookings, onCancelComplete }) {
+import React from 'react';
+
+export function CancelForm({ bookings, onCancelComplete }) {
     const [searchTerm, setSearchTerm] = React.useState('');
     const [filteredBookings, setFilteredBookings] = React.useState([]);
     const [showMessage, setShowMessage] = React.useState({ show: false, title: '', message: '', type: 'success' });

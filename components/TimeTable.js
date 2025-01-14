@@ -3,7 +3,7 @@ import React from 'react';
 import { BookingModal } from './BookingModal';
 import { MessageModal } from './MessageModal';
 
-function TimeTable({ bookings, onBookingComplete }) {
+export function TimeTable({ bookings, onBookingComplete }) {
     const [selectedDay, setSelectedDay] = React.useState('');
     const [selectedCourt, setSelectedCourt] = React.useState(null);
     const [courts, setCourts] = React.useState([]);

@@ -1,4 +1,6 @@
-function BookingForm({ bookings, onBookingComplete }) {
+import React from 'react';
+
+export function BookingForm({ bookings, onBookingComplete }) {
     const [formData, setFormData] = React.useState({
         courtId: '',
         customerId: '',

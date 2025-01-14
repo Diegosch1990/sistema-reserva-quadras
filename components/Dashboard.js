@@ -1,4 +1,6 @@
-function Dashboard({ bookings }) {
+import React from 'react';
+
+export function Dashboard({ bookings }) {
     const [stats, setStats] = React.useState({
         totalBookings: 0,
         todayBookings: 0,

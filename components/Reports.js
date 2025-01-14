@@ -1,4 +1,6 @@
-function Reports() {
+import React from 'react';
+
+export function Reports() {
     const [reportType, setReportType] = React.useState('bookings');
     const [dateRange, setDateRange] = React.useState({
         start: '',

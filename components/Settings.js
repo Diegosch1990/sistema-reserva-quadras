@@ -1,4 +1,6 @@
-function Settings({ onSuccess, onError }) {
+import React from 'react';
+
+export function Settings({ onSuccess, onError }) {
     const [activeTab, setActiveTab] = React.useState('admin');
 
     const tabs = [
